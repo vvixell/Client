@@ -31,11 +31,10 @@ namespace Client
             try
             {
                 Client = new TcpClient(server, port);
-                byte[] data = Encoding.UTF8.GetBytes(Username);
-                Client.GetStream().Write(data, 0, data.Length);
+                SendMessage(Username);
 
                 Thread ReadStreamThread = new Thread(ReadClientStream);
-                ReadStreamThread.Start();
+                //ReadStreamThread.Start();
 
                 while (true)
                 {
