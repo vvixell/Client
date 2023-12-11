@@ -30,11 +30,12 @@ namespace Client
         {
             try
             {
+                AppDomain.CurrentDomain.ProcessExit += new EventHandler(Leave);
                 Client = new TcpClient(server, port);
                 SendMessage(Username);
 
                 Thread ReadStreamThread = new Thread(ReadClientStream);
-                //ReadStreamThread.Start();
+                ReadStreamThread.Start();
 
                 while (true)
                 {
@@ -50,15 +51,6 @@ namespace Client
             {
                 Console.WriteLine("SocketException: {0}", e);
             }
-
-            Console.WriteLine("To Leave Server Press 'ESC' ...");
-
-            while (true)
-            {
-                ConsoleKey Key = Console.ReadKey(true).Key;
-
-                if (Key == ConsoleKey.Escape) Leave();
-            }
         }
 
         static void SendMessage(string msg)
@@ -69,22 +61,29 @@ namespace Client
 
         static void ReadClientStream()
         {
-            using (StreamReader sr = new StreamReader(Client.GetStream()))
+            try
             {
-                while (!sr.EndOfStream)
+                while (true)
                 {
-                    string line = sr.ReadLine();
+                    using (StreamReader sr = new StreamReader(Client.GetStream(), System.Text.Encoding.ASCII, true, 1, true))
+                    {
+                        string line = sr.ReadLine();
 
-                    Console.WriteLine(line);
+                        Console.WriteLine(line);
+                    }
                 }
+            }
+            catch(Exception e)
+            {
+
             }
         }
 
-        static void Leave()
+        static void Leave(Object sender, EventArgs e)
         {
+            SendMessage("/Leave");
             Client.Client.Close();
             Client.Close();
-            Environment.Exit(0);
         }
     }
 }
